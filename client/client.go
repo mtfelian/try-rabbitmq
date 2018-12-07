@@ -14,18 +14,23 @@ import (
 
 func configure() error {
 	viper.SetConfigFile("config.yaml")
-	return viper.ReadInConfig()
+	if err := viper.ReadInConfig(); err != nil {
+		return err
+	}
+
+	logLevel, err := logrus.ParseLevel(viper.GetString("log_level"))
+	if err != nil {
+		return err
+	}
+	logrus.SetLevel(logLevel)
+
+	return nil
 }
 
 func calc(channel *amqp.Channel, exchange, key, body string) error {
-	id, err := uuid.NewV1()
-	if err != nil {
-		return fmt.Errorf("Failed to generate UUIDv1: %v", err)
-	}
-
 	if err := channel.Publish(exchange, key, false, false, amqp.Publishing{
 		ContentType: "text/plain",
-		MessageId:   id.String(),
+		MessageId:   uuid.NewV1().String(),
 		Body:        []byte(body),
 	}); err != nil {
 		return fmt.Errorf("Failed to publish message: %v", err)

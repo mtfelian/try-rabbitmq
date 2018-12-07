@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -13,7 +14,17 @@ import (
 
 func configure() error {
 	viper.SetConfigFile("config.yaml")
-	return viper.ReadInConfig()
+	if err := viper.ReadInConfig(); err != nil {
+		return err
+	}
+
+	logLevel, err := logrus.ParseLevel(viper.GetString("log_level"))
+	if err != nil {
+		return err
+	}
+	logrus.SetLevel(logLevel)
+
+	return nil
 }
 
 func cleanup(channel *amqp.Channel, exchange, qIn, qOut string) error {
@@ -82,7 +93,7 @@ func evaluate(formula string) (float64, error) {
 type result struct {
 	ID   string  `json:"id"`
 	Data float64 `json:"data"`
-	Err  error   `json:"err"`
+	Err  string  `json:"err"`
 	OK   bool    `json:"ok"`
 }
 
@@ -99,21 +110,21 @@ func startPerformTasks(channel *amqp.Channel, exchange, qTask, qResults string) 
 			logrus.Errorln("Channel resultC is closed")
 			os.Exit(1)
 		}
+		msg.Body = bytes.TrimSpace(msg.Body)
 
 		var resultStruct result
 		r, err := evaluate(string(msg.Body))
 		resultStruct = result{OK: true, ID: msg.MessageId, Data: r}
 		if err != nil {
-			resultStruct = result{Err: err, OK: false, ID: msg.MessageId}
+			resultStruct = result{Err: err.Error(), OK: false, ID: msg.MessageId}
 		}
 
 		resultJSON, err := json.Marshal(resultStruct)
 		if err != nil {
-			logrus.Errorf("failed to json.Marshal: %v", err)
-			continue
+			resultJSON = []byte(fmt.Sprintf(`{"ok":false,"id":%q,"err":%q}`, msg.MessageId, err.Error()))
 		}
 
-		logrus.Infof("Publishing result: %s", string(resultJSON))
+		logrus.Debugf("Publishing result... %q gives %q", string(msg.Body), string(resultJSON))
 		if err := channel.Publish(exchange, qResults, false, false, amqp.Publishing{
 			ContentType: "application/json",
 			Body:        resultJSON,
