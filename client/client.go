@@ -105,6 +105,8 @@ func main() {
 		case "EXIT":
 			logrus.Println("Exit OK.")
 			return
+		default:
+			logrus.Errorln("Invalid command.")
 		}
 	}
 }

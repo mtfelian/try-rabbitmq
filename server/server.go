@@ -15,15 +15,27 @@ func configure() error {
 	return viper.ReadInConfig()
 }
 
-func initialize(channel *amqp.Channel, exchange, qIn, qOut string) error {
-	if err := channel.ExchangeDeclare(exchange, "topic", false, false, false, false, nil); err != nil {
+func cleanup(channel *amqp.Channel, exchange, qIn, qOut string) error {
+	if err := channel.ExchangeDelete(exchange, false, false); err != nil {
+		return err
+	}
+	if _, err := channel.QueueDelete(qIn, false, false, false); err != nil {
+		return err
+	}
+	if _, err := channel.QueueDelete(qOut, false, false, false); err != nil {
+		return err
+	}
+	return nil
+}
+
+func create(channel *amqp.Channel, exchange, qIn, qOut string) error {
+	if err := channel.ExchangeDeclare(exchange, "direct", false, false, false, false, nil); err != nil {
 		return err
 	}
 
 	if _, err := channel.QueueDeclare(qIn, false, false, false, false, nil); err != nil {
 		return err
 	}
-
 	if _, err := channel.QueueDeclare(qOut, false, false, false, false, nil); err != nil {
 		return err
 	}
@@ -36,6 +48,14 @@ func initialize(channel *amqp.Channel, exchange, qIn, qOut string) error {
 	}
 
 	return nil
+}
+
+func initialize(channel *amqp.Channel, exchange, qIn, qOut string) error {
+	if err := cleanup(channel, exchange, qIn, qOut); err != nil {
+		return err
+	}
+
+	return create(channel, exchange, qIn, qOut)
 }
 
 // evaluate calculates the formula for the given val
