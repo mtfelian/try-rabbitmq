@@ -10,9 +10,9 @@ services:
     image: rabbitmq
     ports:
       - "5673:5672" 
-      - "15672:15673"
+      - "15673:15672"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:15672"]
+      test: ["CMD", "curl", "-f", "http://localhost:15673"]
       interval: 30s
       timeout: 10s
       retries: 5
