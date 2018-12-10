@@ -1,4 +1,4 @@
-rabbitmq: "amqp://guest:guest@localhost:5672/"
+rabbitmq: "amqp://guest:guest@rabbit_1:5672/"
 rmq_exchange: "calc"
 rmq_key_tasks: "tasks"
 rmq_key_results: "results"
