@@ -6,10 +6,10 @@ import (
 	"os"
 	"strings"
 
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"github.com/streadway/amqp"
 )
 
 func configure() error {

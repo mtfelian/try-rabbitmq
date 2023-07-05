@@ -7,9 +7,9 @@ import (
 	"os"
 
 	"github.com/Knetic/govaluate"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"github.com/streadway/amqp"
 )
 
 func configure() error {
