@@ -1,4 +1,4 @@
-FROM golang
+FROM golang:1.20.5
 
 ENV GOBIN /go/bin
 
