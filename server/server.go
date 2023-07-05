@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -125,7 +126,8 @@ func startPerformTasks(channel *amqp.Channel, exchange, qTask, qResults string) 
 		}
 
 		logrus.Debugf("Publishing result... %q gives %q", string(msg.Body), string(resultJSON))
-		if err := channel.Publish(exchange, qResults, false, false, amqp.Publishing{
+		ctx := context.Background()
+		if err := channel.PublishWithContext(ctx, exchange, qResults, false, false, amqp.Publishing{
 			ContentType: "application/json",
 			Body:        resultJSON,
 		}); err != nil {

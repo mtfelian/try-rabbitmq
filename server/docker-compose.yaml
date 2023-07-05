@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:3.12.1
     ports:
       - "5673:5672" 
       - "15673:15672"

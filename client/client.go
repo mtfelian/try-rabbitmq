@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -27,8 +28,8 @@ func configure() error {
 	return nil
 }
 
-func calc(channel *amqp.Channel, exchange, key, body string) error {
-	if err := channel.Publish(exchange, key, false, false, amqp.Publishing{
+func calc(ctx context.Context, channel *amqp.Channel, exchange, key, body string) error {
+	if err := channel.PublishWithContext(ctx, exchange, key, false, false, amqp.Publishing{
 		ContentType: "text/plain",
 		MessageId:   uuid.NewV1().String(),
 		Body:        []byte(body),
@@ -104,7 +105,8 @@ func main() {
 			}
 
 			body := parts[1]
-			if err := calc(ch, rmqExchange, rmqKeyTasks, body); err != nil {
+			ctx := context.Background()
+			if err := calc(ctx, ch, rmqExchange, rmqKeyTasks, body); err != nil {
 				logrus.Errorln(err)
 				continue
 			}
